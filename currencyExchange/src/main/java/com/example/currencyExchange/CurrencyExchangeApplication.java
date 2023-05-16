@@ -28,32 +28,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 
 @SpringBootApplication
-@ComponentScan("service")
+@ComponentScan({"service", "error"})
+
 public class CurrencyExchangeApplication {
 
 	public static <JsonElement, JsonObject> void main(String[] args) throws IOException, ParseException {
-
-
 		SpringApplication.run(CurrencyExchangeApplication.class, args);
-		String urlStr = "https://api.exchangerate.host/convert?from=USD&to=EUR";
-
-
-		URL url = new URL(urlStr);
-		HttpURLConnection request = (HttpURLConnection) url.openConnection();
-		request.connect();
-
-		JSONParser jp = new JSONParser();
-		JsonElement root = (JsonElement) jp.parse(new InputStreamReader((InputStream) request.getContent()));
-		JSONObject jsonObject = new JSONObject((Map) root);
-		String requestResult = jsonObject.get("result").toString();
-
-
-		System.out.println("This is the exchange rate" + requestResult);
-
-
 	}
-
-
 }
 
 
