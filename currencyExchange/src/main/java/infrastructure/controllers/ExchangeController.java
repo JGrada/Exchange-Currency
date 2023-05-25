@@ -1,6 +1,7 @@
 package infrastructure.controllers;
 
 import domain.entities.ExchangeRate;
+import domain.exceptions.InvalidCurrencyException;
 import infrastructure.common.ConversionHandler;
 import infrastructure.entities.Response;
 import infrastructure.entities.ResponseBuilder;
@@ -22,14 +23,20 @@ import java.util.Map;
 import java.util.Objects;
 
 @RestController
-public class ExchangeController {
+public class ExchangeController extends BaseController {
     @GetMapping("/api/convert")
         public Response exchangeController(@RequestParam String from, @RequestParam String to, @RequestParam Double amount) throws IOException, ParseException {
-            ExchangeRateServiceImpl exchangeRateService = new ExchangeRateServiceImpl();
-            ConversionHandler ch = new ConversionHandler();
+        ConversionHandler ch = new ConversionHandler();
 
-            ExchangeRate exchangeRate = exchangeRateService.exchangeCurrency(ch.toCurrencyCode(from), ch.toCurrencyCode(to), amount);
+        ExchangeRateServiceImpl exchangeRateService = new ExchangeRateServiceImpl(ch);
+        ExchangeRate exchangeRate = null;
 
+            try {
+                exchangeRate = exchangeRateService.exchangeCurrency(ch.toCurrencyCode(from), ch.toCurrencyCode(to), amount);
+            }
+            catch (InvalidCurrencyException ice){
+                throw ice;
+            }
             ResponseBuilder rb = new ResponseBuilder();
 
             Response response = rb

@@ -9,7 +9,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 
 @SpringBootApplication
-@ComponentScan({"infrastructure.controllers", "error"})
+@ComponentScan({"infrastructure.controllers", "infrastructure/error"})
 
 public class CurrencyExchangeApplication {
 

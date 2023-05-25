@@ -1,72 +1,44 @@
 package infrastructure.controllers;
-import error.ErrorResponse;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import domain.entities.ExchangeRate;
+import domain.exceptions.InvalidCurrencyException;
+import infrastructure.common.ConversionHandler;
+import infrastructure.entities.Response;
+import infrastructure.entities.ResponseBuilder;
 import org.json.simple.parser.ParseException;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import deprecated.AllRatesResponse;
+import services.ExchangeRateServiceImpl;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.time.LocalDateTime;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
-public class AllRatesController {
+public class AllRatesController extends BaseController{
     @GetMapping("/api/rate")
-    public <JsonElement> AllRatesResponse rateViewer(@RequestParam String base) throws IOException, ParseException {
+    public Response allRatesController (@RequestParam String base) throws IOException, ParseException {
+        ConversionHandler ch = new ConversionHandler();
+        ExchangeRateServiceImpl exchangeRateService = new ExchangeRateServiceImpl(ch);
 
-        String urlStr = "https://api.exchangerate.host/viewrate?base=" + base;
+        ArrayList<ExchangeRate> exchangeRates = null;
+        try {
+            exchangeRates = exchangeRateService.getAllExchangeRates(ch.toCurrencyCode(base));
 
-        URL url = new URL(urlStr);
-        HttpURLConnection request = (HttpURLConnection) url.openConnection();
-        request.connect();
-
-        JSONParser jsonParser = new JSONParser();
-        JsonElement jsonElement = (JsonElement) jsonParser.parse(new InputStreamReader((InputStream) request.getContent()));
-
-        String baseCurrency = base;
-        JSONObject rates = (JSONObject) ((JSONObject) ((Map<?, ?>) jsonElement)).get("rates");
-        if(base == null){
-            base = "EUR";
         }
-        else if(!rates.containsKey(base)){
-            throw new NonExistingCurrencyException("Non existing currency");
+        catch (InvalidCurrencyException ice){
+            throw ice;
         }
 
-        Map<String, Object> exchangeRates = new HashMap<>();
-        for (Object currencyCode : rates.keySet()) {
-            Object rateValue = rates.get(currencyCode);
-            exchangeRates.put(currencyCode.toString(), rateValue);
-        }
-        return new AllRatesResponse(base, exchangeRates);
+        Map<String, Double> rates = exchangeRates.stream().collect(Collectors.toMap(e -> e.getToCurrency().toString(), ExchangeRate::getToAmount));
+        ResponseBuilder rb = new ResponseBuilder();
+
+        Response response = rb
+                .setFrom(base)
+                .setRates(rates)
+                .build();
+
+        return response;
+
     }
 
-    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
-    public class NonExistingCurrencyException extends RuntimeException {
-        public NonExistingCurrencyException(String message) {
-            super(message);
-        }
-    }
-
-    @ControllerAdvice
-    public class ExceptionHandlerAdvice {
-        @ExceptionHandler(NonExistingCurrencyException.class)
-        @ResponseStatus(HttpStatus.BAD_REQUEST)
-        @ResponseBody
-        public ErrorResponse handleNonExistingCurrencyException(NonExistingCurrencyException ex) {
-            ErrorResponse errorResponse = new ErrorResponse();
-            errorResponse.setTimestamp(LocalDateTime.now().toString());
-            errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
-            errorResponse.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
-            errorResponse.setMessage(ex.getMessage());
-            errorResponse.setPath("/api/rate");
-            return errorResponse;
-        }
-    }
 }

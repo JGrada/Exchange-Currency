@@ -4,14 +4,17 @@ import domain.enums.CurrencyCode;
 import domain.exceptions.InvalidCurrencyException;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 public class ConversionHandler {
 
     public CurrencyCode toCurrencyCode(String currencyString) throws InvalidCurrencyException {
-        CurrencyCode currencyCode = CurrencyCode.valueOf(currencyString);
-        if (currencyCode == null || !List.of(CurrencyCode.values()).contains(currencyCode)) {
-            throw new InvalidCurrencyException("Currency" + currencyString +  " is invalid.");
+
+        if (currencyString == null || currencyString.equals("") || !Stream.of(CurrencyCode.values()).map(Enum::toString).toList().contains(currencyString)) {
+            throw new InvalidCurrencyException("Currency " + currencyString +  " is invalid.");
         }
+
+        CurrencyCode currencyCode = CurrencyCode.valueOf(currencyString);
 
         return currencyCode;
     }
