@@ -17,8 +17,7 @@ import java.util.stream.Collectors;
 public class AllRatesController extends BaseController{
     @GetMapping("/api/rate")
     public Response allRatesController (@RequestParam String base) throws IOException, ParseException {
-        ConversionHandler ch = new ConversionHandler();
-        ExchangeRateServiceImpl exchangeRateService = new ExchangeRateServiceImpl(ch);
+        ExchangeRateServiceImpl exchangeRateService = new ExchangeRateServiceImpl(ch, cache);
 
         ArrayList<ExchangeRate> exchangeRates = null;
         try {

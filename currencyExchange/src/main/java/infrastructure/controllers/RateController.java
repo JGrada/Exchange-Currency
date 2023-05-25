@@ -6,6 +6,8 @@ import infrastructure.common.ConversionHandler;
 import infrastructure.entities.Response;
 import infrastructure.entities.ResponseBuilder;
 import infrastructure.error.ErrorResponse;
+import infrastructure.persistence.cache.CacheImpl;
+import infrastructure.persistence.cache.ICache;
 import org.json.simple.parser.ParseException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -19,9 +21,7 @@ import java.time.LocalDateTime;
 public class RateController extends BaseController {
     @GetMapping("/api/viewRate")
     public Response rateController(@RequestParam String from, @RequestParam String to) throws IOException, ParseException {
-        ConversionHandler ch = new ConversionHandler();
-
-        ExchangeRateServiceImpl exchangeRateService = new ExchangeRateServiceImpl(ch);
+        ExchangeRateServiceImpl exchangeRateService = new ExchangeRateServiceImpl(ch, cache);
         ExchangeRate exchangeRate = null;
 
         try {

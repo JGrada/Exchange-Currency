@@ -22,8 +22,7 @@ import java.util.stream.Collectors;
 public class MupltipleRatesController extends BaseController {
     @GetMapping("/api/latest")
     public Response multipleRatesController(@RequestParam String from, @RequestParam String to) throws IOException, ParseException {
-        ConversionHandler ch = new ConversionHandler();
-        ExchangeRateServiceImpl exchangeRateService = new ExchangeRateServiceImpl(ch);
+        ExchangeRateServiceImpl exchangeRateService = new ExchangeRateServiceImpl(ch, cache);
 
         ArrayList<ExchangeRate> exchangeRates = null;
 

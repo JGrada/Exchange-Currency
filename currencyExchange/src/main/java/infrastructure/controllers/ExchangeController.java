@@ -2,12 +2,16 @@ package infrastructure.controllers;
 
 import domain.entities.ExchangeRate;
 import domain.exceptions.InvalidCurrencyException;
+import domain.exceptions.InvalidValueException;
 import infrastructure.common.ConversionHandler;
 import infrastructure.entities.Response;
 import infrastructure.entities.ResponseBuilder;
+import infrastructure.persistence.cache.CacheImpl;
+import infrastructure.persistence.cache.ICache;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.springframework.cache.Cache;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,18 +30,17 @@ import java.util.Objects;
 public class ExchangeController extends BaseController {
     @GetMapping("/api/convert")
         public Response exchangeController(@RequestParam String from, @RequestParam String to, @RequestParam Double amount) throws IOException, ParseException {
-        ConversionHandler ch = new ConversionHandler();
 
-        ExchangeRateServiceImpl exchangeRateService = new ExchangeRateServiceImpl(ch);
+        ExchangeRateServiceImpl exchangeRateService = new ExchangeRateServiceImpl(ch, cache);
         ExchangeRate exchangeRate = null;
 
             try {
                 exchangeRate = exchangeRateService.exchangeCurrency(ch.toCurrencyCode(from), ch.toCurrencyCode(to), amount);
             }
-            catch (InvalidCurrencyException ice){
-                throw ice;
+            catch (InvalidCurrencyException | InvalidValueException e){
+                throw e;
             }
-            ResponseBuilder rb = new ResponseBuilder();
+        ResponseBuilder rb = new ResponseBuilder();
 
             Response response = rb
                     .setFrom(from)
