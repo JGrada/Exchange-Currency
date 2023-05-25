@@ -1,4 +1,4 @@
-package service;
+package infrastructure.controllers;
 
 import error.ErrorResponse;
 import org.json.simple.JSONObject;
@@ -6,6 +6,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import deprecated.SuppliedCurrencysResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-public class ConvertToSpecificController {
+public class MupltipleRatesController {
     @GetMapping("/api/latest")
     public <JsonElement> SuppliedCurrencysResponse suppliedCurrencysViewer(@RequestParam String base, @RequestParam ArrayList<String> symbols) throws IOException, ParseException {
         if(symbols.isEmpty()){
@@ -43,8 +44,6 @@ public class ConvertToSpecificController {
         for (Object currencyCode : rates.keySet()) {
             for(String symbol : symbols){
                 if(symbol.toString().equals(currencyCode.toString())){
-                    System.out.println(symbol);
-                    System.out.println(currencyCode.toString());
                     Object rateValue = rates.get(currencyCode);
                     exchangeRates.put(currencyCode.toString(), rateValue);
                 }

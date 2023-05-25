@@ -1,4 +1,4 @@
-package service;
+package deprecated;
 
 public class CurrencyConverterResponse {
     private Double result;

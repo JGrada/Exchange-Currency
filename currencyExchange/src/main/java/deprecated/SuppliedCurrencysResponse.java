@@ -1,6 +1,5 @@
-package service;
+package deprecated;
 
-import java.util.ArrayList;
 import java.util.Map;
 
 public class SuppliedCurrencysResponse {

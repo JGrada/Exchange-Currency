@@ -1,10 +1,11 @@
-package service;
+package infrastructure.controllers;
 import error.ErrorResponse;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import deprecated.AllRatesResponse;
 
 import java.io.IOException;
 import java.io.InputStream;

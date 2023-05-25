@@ -1,4 +1,4 @@
-package service;
+package deprecated;
 
 public class RateResponse {
     private Double result;
