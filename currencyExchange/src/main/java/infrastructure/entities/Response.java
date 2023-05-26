@@ -5,6 +5,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.Map;
 
 public class Response {
+
+    //Creating a base class for the response
+    //Note that there's values with NON_NULL because there are operations that doesn't fit every possifle fields
+    //So that if those values are null, they will be ommited from the response
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String from;
 

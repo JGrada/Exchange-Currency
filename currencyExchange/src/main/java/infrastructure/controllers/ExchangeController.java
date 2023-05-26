@@ -33,22 +33,16 @@ public class ExchangeController extends BaseController {
 
         ExchangeRateServiceImpl exchangeRateService = new ExchangeRateServiceImpl(ch, cache);
         ExchangeRate exchangeRate = null;
+        //We get the logic from the service, set the base currency, the target currency and amount to be exchanged
+        //Also note that there's always the conversion handler, converting Strings to Currency Codes
+        exchangeRate = exchangeRateService.exchangeCurrency(ch.toCurrencyCode(from), ch.toCurrencyCode(to), amount);
 
-            try {
-                exchangeRate = exchangeRateService.exchangeCurrency(ch.toCurrencyCode(from), ch.toCurrencyCode(to), amount);
-            }
-            catch (InvalidCurrencyException | InvalidValueException e){
-                throw e;
-            }
-        ResponseBuilder rb = new ResponseBuilder();
-
-            Response response = rb
+        //Builder design pattern to create the response
+        return new ResponseBuilder()
                     .setFrom(from)
                     .setTo(to)
                     .setAmount(amount)
                     .setResult(exchangeRate.getToAmount())
                     .build();
-
-            return response;
     }
 }

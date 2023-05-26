@@ -22,24 +22,26 @@ import java.util.stream.Collectors;
 
 public class ExchangeRateServiceImpl implements IExchangeRateService{
 
-    private ConversionHandler ch;
-    private ICache cache;
+    private final ConversionHandler ch;
+    private final ICache cache;
 
     public ExchangeRateServiceImpl(ConversionHandler ch, ICache cache) {
         this.ch = ch;
         this.cache = cache;
     }
-
+    //Decided to use the documentation provided by the API to access the data, I'm aware that there's other options
+    //Like WebClient but decided to go with the example from the source API documentation
     @Override
     public ExchangeRate getExchangeRate(CurrencyCode fromCurrency, CurrencyCode toCurrency) { // View Rate from Currency A to currency B
-        String urlStr = "https://api.exchangerate.host/convert?from=" + fromCurrency + "&to=" + toCurrency;
+
+        String urlStr = "https://api.exchangerate.host/convert?from=" + fromCurrency + "&to=" + toCurrency; //Appending the link with the parameters received
 
         ExchangeRate exchangeRate = null;
-
+        //Verifying if the value is already on cache
         if (cache.hasCachedExchangeRate(fromCurrency, toCurrency, 1.0)) {
             exchangeRate = cache.getCachedExchangeRate(fromCurrency, toCurrency, 1.0);
             System.out.println("from cache");
-        } else {
+        } else { //If the value is not on cache, then HTTP request is made
             try {
                 // Create http connection
                 URL url = new URL(urlStr);
@@ -51,10 +53,12 @@ public class ExchangeRateServiceImpl implements IExchangeRateService{
                 JSONObject jsonObject = (JSONObject) jsonParser.parse(new InputStreamReader((InputStream) request.getContent()));
 
                 // Create ExchangeRate
+                //Had to use Number for specific problem when converting from EUR to EUR, because the value would be "1" which makes the conversion not working
                 Number result = (Number) ((Map<?, ?>) jsonObject).get("result");
+                //Creating the new Exchange Rate with the received rate, setting the amount to 1, so that we get the exact rate
                 exchangeRate = new ExchangeRate(fromCurrency, toCurrency, 1.0, result.doubleValue());
+                //Adding the value to the cache
                 cache.cacheExchangeRate(fromCurrency, toCurrency, 1.0, result.doubleValue());
-                System.out.println("from http");
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -64,30 +68,32 @@ public class ExchangeRateServiceImpl implements IExchangeRateService{
     }
 
     @Override
+    //Converting specific amount from Currency A to Currency B, ex : 10 EUR to USD
     public ExchangeRate exchangeCurrency(CurrencyCode fromCurrency, CurrencyCode toCurrency, Double amount) throws InvalidValueException {
-        String urlStr = "https://api.exchangerate.host/convert?from=" + fromCurrency + "&to=" + toCurrency + "&amount=" + amount;
+        String urlStr = "https://api.exchangerate.host/convert?from=" + fromCurrency + "&to=" + toCurrency + "&amount=" + amount; //Appending the link
         if(amount <= 0){
-            throw new InvalidValueException("Invalid value");
+            throw new InvalidValueException("Invalid value"); //If the amount to be converted is 0 or negative, Exception is thrown
         }
         ExchangeRate exchangeRate = null;
 
+        //Verifying if result is already in cache
         if (cache.hasCachedExchangeRate(fromCurrency, toCurrency, amount)) {
             exchangeRate = cache.getCachedExchangeRate(fromCurrency, toCurrency, amount);
-            System.out.println("from cache");
         } else {
             try {
+                //Creating connection
                 URL url = new URL(urlStr);
                 HttpURLConnection request = (HttpURLConnection) url.openConnection();
                 request.connect();
 
+                //Parsing response
                 JSONParser jsonParser = new JSONParser();
                 JSONObject jsonObject = (JSONObject) jsonParser.parse(new InputStreamReader((InputStream) request.getContent()));
 
-                Number result = (Number) ((Map<?, ?>) jsonObject).get("result");
+                Number result = (Number) ((Map<?, ?>) jsonObject).get("result"); //Getting the result
 
-                exchangeRate = new ExchangeRate(fromCurrency, toCurrency, amount, result.doubleValue());
-                cache.cacheExchangeRate(fromCurrency, toCurrency, amount, result.doubleValue());
-                System.out.println("from http");
+                exchangeRate = new ExchangeRate(fromCurrency, toCurrency, amount, result.doubleValue()); //Creating the new Exchange Rate
+                cache.cacheExchangeRate(fromCurrency, toCurrency, amount, result.doubleValue()); //Addind result to cache
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -97,22 +103,26 @@ public class ExchangeRateServiceImpl implements IExchangeRateService{
     }
 
     @Override
+    //Getting rate from Currency A to Currency B,C,D. Ex: EUR to USD,CAD,RON
     public ArrayList<ExchangeRate> getMultipleExchangeRates(CurrencyCode fromCurrency, ArrayList<CurrencyCode> toCurrency) {
+        //Appending the link and separating the "To currency" from the ArrayList with commas
         String urlStr = "https://api.exchangerate.host/latest?base=" + fromCurrency + "&symbols=" + String.join(",", toCurrency.stream().map(CurrencyCode::toString).toList());
 
         ArrayList<ExchangeRate> exchangeRates = new ArrayList<ExchangeRate>();
+        //This was necessary because some values might already be on cache, so decision was verifying which ones weren't, so that they can be requested from HTTP
         ArrayList<CurrencyCode> currencyCodesToReq = new ArrayList<CurrencyCode>();
 
         for(CurrencyCode cc : toCurrency){
             if(cache.hasCachedExchangeRate(fromCurrency, cc, 1.0)){
+                //If value is already on cache, value is added to "final" arraylist
                 exchangeRates.add(cache.getCachedExchangeRate(fromCurrency, cc, 1.0));
-                System.out.println(cc.toString() + " was cached");
             } else {
+                //If value is NOT on cache, it's added to the ones that are needed to be requested
                 currencyCodesToReq.add(cc);
-                System.out.println(cc.toString() + " will be requested");
             }
         }
-
+        //If the array of Currencies to be requested is not empty, HTTP request will be made
+        //Only for the ones necessary
         if (!currencyCodesToReq.isEmpty()) {
             try {
                 URL url = new URL(urlStr);
@@ -123,14 +133,16 @@ public class ExchangeRateServiceImpl implements IExchangeRateService{
                 JSONObject jsonObject = (JSONObject) jsonParser.parse(new InputStreamReader((InputStream) request.getContent()));
 
                 Map<String, Number> rates = (Map<String, Number>) ((Map<?, ?>) jsonObject).get("rates");
-
+                //Creating a new ArrayList to store the values, streaming them to iterate them, and creating a Map
+                //Followed by lambda operation to add the Exchange Rate to the new ArrayList
                 ArrayList<ExchangeRate> uncachedExchangeRates = currencyCodesToReq
                         .stream()
                         .map(r -> new ExchangeRate(fromCurrency, r, 1.0, rates.get(r.toString()).doubleValue()))
                         .collect(Collectors.toCollection(ArrayList::new));
-
+                //Adding the values requested to the cache
                 uncachedExchangeRates.forEach(er -> cache.cacheExchangeRate(er.getFromCurrency(), er.getToCurrency(), 1.0, er.getToAmount()));
-
+                //Adding the values requested to the arraylist created above, on line 111, either filling it from the beggining or
+                //Just adding the ones that were necessary
                 exchangeRates.addAll(uncachedExchangeRates);
 
             } catch (Exception e){
@@ -142,31 +154,36 @@ public class ExchangeRateServiceImpl implements IExchangeRateService{
     }
 
     @Override
-    public ArrayList<ExchangeRate> getAllExchangeRates(CurrencyCode fromCurrency) {
+    public ArrayList<ExchangeRate> getAllExchangeRates(CurrencyCode fromCurrency) { //Getting all the exchange rates for one single Currency
         String urlStr = "https://api.exchangerate.host/viewrate?base=" + fromCurrency;
         ArrayList<ExchangeRate> exchangeRates = null;
 
+        //Here, given the syntax of the API, it makes it impossible to look for value in cache, this is due
+        //To the fact that the link="https://api.exchangerate.host/viewrate?base=" can not be appended with the "Currency to",
+        // which makes it impossible to check what values are already in cache
 
         try{
+
+            //Creating the connection
             URL url = new URL(urlStr);
             HttpURLConnection request = (HttpURLConnection) url.openConnection();
             request.connect();
 
+            //Parsing the response
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject) jsonParser.parse(new InputStreamReader((InputStream) request.getContent()));
 
             Map<String, Number> rates = (Map<String, Number>) ((Map<?, ?>) jsonObject).get("rates");
-            System.out.println(rates);
 
+            //Setting the response
             exchangeRates = rates
                     .keySet()
                     .stream()
                     .map(r -> new ExchangeRate(fromCurrency, ch.toCurrencyCode(r), 1.0, rates.get(r).doubleValue()))
                     .collect(Collectors.toCollection(ArrayList::new));
 
-            System.out.println(exchangeRates);
+            //Adding values to cache
             exchangeRates.forEach(er -> cache.cacheExchangeRate(er.getFromCurrency(), er.getToCurrency(), 1.0, er.getToAmount()));
-            System.out.println(exchangeRates.toString() + "was cached");
 
             } catch (Exception e) {
                 e.printStackTrace();

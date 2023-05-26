@@ -24,21 +24,13 @@ public class RateController extends BaseController {
         ExchangeRateServiceImpl exchangeRateService = new ExchangeRateServiceImpl(ch, cache);
         ExchangeRate exchangeRate = null;
 
-        try {
-            exchangeRate = exchangeRateService.getExchangeRate(ch.toCurrencyCode(from), ch.toCurrencyCode(to));
-        } catch (InvalidCurrencyException ice) {
-            throw ice;
-        }
+        exchangeRate = exchangeRateService.getExchangeRate(ch.toCurrencyCode(from), ch.toCurrencyCode(to));
 
-        ResponseBuilder rb = new ResponseBuilder();
-
-        Response response = rb
-                .setFrom(from)
+        return new ResponseBuilder().
+                setFrom(from)
                 .setTo(to)
                 .setRate(exchangeRate.getToAmount())
                 .build();
-
-        return response;
     }
 
 }

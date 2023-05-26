@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public interface ICache {
-    ArrayList<CachedExchangeRate> cachedExchangeRates = new ArrayList<CachedExchangeRate>();
+
 
     boolean hasCachedExchangeRate(CurrencyCode from, CurrencyCode to, Double fromAmount);
     ExchangeRate getCachedExchangeRate(CurrencyCode from, CurrencyCode to, Double fromAmount);

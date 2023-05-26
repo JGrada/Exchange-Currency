@@ -15,29 +15,23 @@ import java.util.stream.Collectors;
 
 @RestController
 public class AllRatesController extends BaseController{
-    @GetMapping("/api/rate")
+    //Extending the Base Controller makes it possible to catch the exceptions created
+    //So that there's no necessity for keeping on throwing exception on every REST controller
+    @GetMapping("/api/rate") //Defining the endpoint for this operation
     public Response allRatesController (@RequestParam String base) throws IOException, ParseException {
+        //This controller is responsible for building the response that shows all the conversion rates related to one specific based currency
         ExchangeRateServiceImpl exchangeRateService = new ExchangeRateServiceImpl(ch, cache);
 
         ArrayList<ExchangeRate> exchangeRates = null;
-        try {
-            exchangeRates = exchangeRateService.getAllExchangeRates(ch.toCurrencyCode(base));
-
-        }
-        catch (InvalidCurrencyException ice){
-            throw ice;
-        }
-
+        exchangeRates = exchangeRateService.getAllExchangeRates(ch.toCurrencyCode(base)); //Accesses the logic from the services, and passes the user input
         Map<String, Double> rates = exchangeRates.stream().collect(Collectors.toMap(e -> e.getToCurrency().toString(), ExchangeRate::getToAmount));
-        ResponseBuilder rb = new ResponseBuilder();
+        //Converting the ArrayList to a stream so that we can collect, then using a map, because it makes it possible that there's a key for every currency
+        //Using lambda expressions to iterate the map
 
-        Response response = rb
+        //Builder design pattern to create the response
+        return new ResponseBuilder()
                 .setFrom(base)
                 .setRates(rates)
                 .build();
-
-        return response;
-
     }
-
 }

@@ -7,7 +7,7 @@ import infrastructure.common.ConversionHandler;
 import java.util.ArrayList;
 
 public interface IExchangeRateService {
-
+    //Creating the methods to be Overiden later
     public ExchangeRate getExchangeRate(CurrencyCode fromCurrency, CurrencyCode toCurrency);
     public ExchangeRate exchangeCurrency(CurrencyCode fromCurrency, CurrencyCode toCurrency, Double amount);
     public ArrayList<ExchangeRate> getMultipleExchangeRates(CurrencyCode fromCurrency, ArrayList<CurrencyCode> toCurrency);

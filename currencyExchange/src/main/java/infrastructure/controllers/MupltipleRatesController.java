@@ -25,28 +25,20 @@ public class MupltipleRatesController extends BaseController {
         ExchangeRateServiceImpl exchangeRateService = new ExchangeRateServiceImpl(ch, cache);
 
         ArrayList<ExchangeRate> exchangeRates = null;
+        //Spliting the desired "to currencies" with commas, so that it can be appended and using a lambda expression to
+        //iterate the map that contains the Currency Code and the rate when met with the base currency
+        exchangeRates =
+                exchangeRateService.getMultipleExchangeRates(ch.toCurrencyCode(from), Arrays
+                        .stream(to.split(","))
+                        .map(c -> ch.toCurrencyCode(c))
+                        .collect(Collectors.toCollection(ArrayList::new)));
 
-        try {
-            exchangeRates =
-                    exchangeRateService.getMultipleExchangeRates(ch.toCurrencyCode(from), Arrays
-                            .stream(to.split(","))
-                            .map(c -> ch.toCurrencyCode(c))
-                            .collect(Collectors.toCollection(ArrayList::new)));
-        } catch (InvalidCurrencyException ice) {
-            throw ice;
-        }
-
-
-
-        ResponseBuilder rb = new ResponseBuilder();
         Map<String, Double> rates = exchangeRates.stream().collect(Collectors.toMap(e -> e.getToCurrency().toString(), ExchangeRate::getToAmount, (f, s) -> f));
+        //When there's multiple request for the same Currency, this (f, s) -> f) makes sure that only the first one of the same currency is displayed
 
-
-        Response response = rb
+        return new ResponseBuilder()
                 .setFrom(from)
                 .setRates(rates)
                 .build();
-
-        return response;
     }
 }

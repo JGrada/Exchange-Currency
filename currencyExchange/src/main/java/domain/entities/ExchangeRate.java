@@ -10,6 +10,7 @@ public class ExchangeRate {
     private Double toAmount;
 
     public ExchangeRate(CurrencyCode fromCurrency, CurrencyCode toCurrency, Double fromAmount, Double toAmount) {
+        //Main entity of the project, the currency Code is obtained from the enum, so that we don't deal with strings
         this.fromCurrency = fromCurrency;
         this.toCurrency = toCurrency;
         this.fromAmount = fromAmount;

@@ -1,6 +1,7 @@
 package domain.enums;
 
 public enum CurrencyCode {
+    //Enum with all the currencies available from the original API,
     AED,
     AFN,
     ALL,

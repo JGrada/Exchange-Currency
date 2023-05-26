@@ -3,6 +3,7 @@ package infrastructure.entities;
 import java.util.Map;
 
 public class ResponseBuilder {
+    //Design Pattern Builder to create the response that will be shown on the endpoints
     private Response response = new Response();
 
     public ResponseBuilder setFrom(String from){

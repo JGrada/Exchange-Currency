@@ -14,7 +14,8 @@ public class ErrorResponse {
     public ErrorResponse() {
 
     }
-
+    //Personalizing the error messages with the desired fields, I chose to go with the ones
+    //I think are the most important: Timing of the failure, Status, Error, Personalized message, Endpoint of the error
     public String getTimestamp() {
         return timestamp;
     }
@@ -54,4 +55,6 @@ public class ErrorResponse {
     public void setPath(String path) {
         this.path = path;
     }
+
+
 }
