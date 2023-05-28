@@ -11,7 +11,7 @@ import infrastructure.persistence.cache.ICache;
 import org.json.simple.parser.ParseException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import deprecated.RateResponse;
+
 import services.ExchangeRateServiceImpl;
 
 import java.io.IOException;
