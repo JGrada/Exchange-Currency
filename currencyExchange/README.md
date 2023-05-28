@@ -14,6 +14,8 @@ pom.xml file must be installed, otherwise, the project won\'t work.
 Swagger provides an interface for testing. Each endpoint/operation is up
 on swagger and can be tested.
 
+The endpoint for the Swagger is: http://localhost:8080/swagger-ui/index.html#/
+
 4\. Endpoint descriptions with example:
 
 There\'s 4 endpoints.
